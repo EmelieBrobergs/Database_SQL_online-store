@@ -1,0 +1,222 @@
+//// -- LEVEL 1
+//// -- Tables and References
+
+// Creating tables
+//Table users as U {
+//  id int [pk, increment] // auto-increment
+//  full_name varchar
+//  created_at timestamp
+//  country_code int
+//}
+
+//Table countries {
+//  code int [pk]
+//  name varchar
+//  continent_name varchar
+ //}
+
+// Creating references
+// You can also define relaionship separately
+// > many-to-one; < one-to-many; - one-to-one
+//Ref: U.country_code > countries.code  
+//Ref: merchants.country_code > countries.code
+
+//----------------------------------------------//
+
+//// -- LEVEL 2
+//// -- Adding column settings
+
+//Table order_items {
+//  order_id int [ref: > orders.id] // inline relationship (many-to-one)
+//  product_id int
+//  quantity int [default: 1] // default value
+//}
+
+//Ref: order_items.product_id > product.id
+
+//Table orders {
+//  id int [pk] // primary key
+//  user_id int [not null, unique]
+//  status varchar
+//  created_at varchar [note: 'When order created'] // add column note
+//}
+
+//----------------------------------------------//
+
+//// -- Level 3 
+//// -- Enum, Indexes
+
+// Enum for 'products' table below
+//Enum products_status {
+//  out_of_stock
+//  in_stock
+//  running_low [note: 'less than 20'] // add column note
+//}
+
+// Indexes: You can define a single or multi-column index 
+Table product {
+  id int [pk]
+  article_no varchar(10)
+  size_id int [not null]
+  name varchar(50)
+  description varchar(300)
+  //merchant_id int [not null]
+  price int
+  //status products_status
+  created_at datetime [default: `now()`]
+  score int
+  
+ // Indexes {
+  //  (size_id, status) [name:'product_size']
+  //  id [unique]
+  //}
+}
+
+Table size {
+  id int [pk]
+  size_range_id int [not null]
+  name varchar(5)
+}
+
+Table size_range {
+  id int [pk]
+  name varchar(50)
+}
+
+Ref: product.size_id > size.id // many-to-one
+Ref: size.size_range_id > size_range.id // many-to-one
+
+//Ref: "size"."id" < "size"."size_range_id"
+//composite foreign key
+//Ref: merchant_periods.(merchant_id, country_code) > merchants.(id, country_code)
+
+
+//Ref: "merchants"."id" < "merchants"."created at"
+
+//----------------------------------------------
+
+Table category{
+  id int [pk]
+  name varchar(50)
+}
+
+Table product_category{
+  product_id int [not null]
+  category_id int [not null]
+}
+
+Ref: product_category.product_id < product.id
+Ref: product_category.category_id < category.id
+
+//----------------------------------------------
+
+Table color{
+  id int [pk]
+  name varchar(50)
+}
+
+Table product_color{
+  product_id int [not null]
+  color_id int [not null]
+}
+
+Ref: product.id > product_color.product_id
+Ref: color.id > product_color.color_id
+
+//----------------------------------------------
+
+Table stock{
+  product_id int
+  quantity int
+  reserved int
+}
+Ref: product.id > stock.product_id
+
+// ingående eller utgående transaktion
+Table mark{
+  id int [pk]
+  name varchar(30)
+}
+
+Table stock_transaktion{
+  id int [pk]
+  product_id int
+  order_id int
+  mark_id int
+  date datetime [default: `now()`]
+}
+Ref: mark.id < stock_transaktion.mark_id 
+Ref: product.id < stock_transaktion.product_id
+
+//----------------------------------------------
+
+Table order{
+  id int [pk]
+  cart_id int
+  current_price int
+  purches_price int
+  order_status_id int
+}
+// lägga till koppling för hur fältens värde sätts?
+Ref kopplingsnamn: order.id < stock_transaktion.order_id
+
+Table order_status{
+  id int [pk]
+  name varchar(50)
+}
+Ref: order_status.id < order.order_status_id
+
+Table cart{
+  id int [pk]
+  product_id int
+  category_disscount_id int
+  quantity int
+}
+Ref: product.id < cart.product_id
+Ref: cart.id - order.cart_id
+
+Table customer{
+  id int [pk]
+  cart_id int
+  order_history_id int
+  customer_favorite_id int
+  full_name varchar(100)
+  email varchar(100)
+  phone varchar(20)
+  shipping_address varchar (100)
+}
+Ref: cart.id > customer.cart_id
+
+Table order_history{
+  id int [pk]
+  order_id int
+}
+Ref: order.id - order_history.order_id
+Ref: order_history.id > customer.order_history_id
+
+//----------------------------------------------
+Table disscount_code{
+  id int [pk]
+  name varchar(100)
+  procent_off decimal
+  start_date datetime
+  end_date datetime
+}
+
+Table category_disscount{
+  id int [pk]
+  disscount_code_id int
+  category_id int
+}
+Ref: disscount_code.id > category_disscount.disscount_code_id
+Ref: category.id > category_disscount.category_id
+Ref: category_disscount.id > cart.category_disscount_id
+
+//----------------------------------------------
+Table customer_favorite{
+  id int [pk]
+  customer_id int [not null]
+  product_id int [not null]
+}
+Ref: customer.id < customer_favorite.customer_id
+Ref: product.id < customer_favorite.product_id
